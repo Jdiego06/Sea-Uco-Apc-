@@ -9,38 +9,39 @@
 
 
 
-#define WIFISSID ""                        //credenciales de la red wifi
-#define PASSWORD ""
+#define WIFISSID "SEA UCO"                           //credenciales de la red wifi
+#define PASSWORD "SeaUco666"
 
 
-//--------------------------------------------------TANQUE 2-----------------------------------------------------------
+//--------------------------------------------------TANQUE X-----------------------------------------------------------
 
-#define TOKEN  ""        //Token de la cuenta Ubidots
-char* Sample_Time = "";
-char* Time_on_valve = "";
-char* lcdb = "";
-char* HourOn = "";
-char* MinuteOn = "";
+#define TOKEN  "xxxxxx"        //Token de la cuenta Ubidots
+char* Sample_Time = "xxxxxx";
+char* Time_on_valve = "xxxxxx";                             //Ids de variables Ubidots
+char* lcdb = "xxxxxx";
+char* HourOn = "xxxxxx";
+char* MinuteOn = "xxxxxx";
 
 const int default_hora=6;                                   //Se define la hora de encendido de la válvula
-const int default_minuto=10;
+const int default_minuto=0;
 //---------------------------------------------------------------------------------------------------------------------
 
 
-#define ONE_WIRE_BUS D3                             //Pin del bus One Wire
-#define GPIO_ADDR   0x27                            //direccion i2c del lcd
+
+#define ONE_WIRE_BUS D3                              //Pin del bus One Wire
+#define GPIO_ADDR   0x27                             //direccion i2c del lcd
 
 
-const int default_sample_time=20;                   //Definicion de constantes por defecto en caso de
-const int default_on_valve_time=0;                 //perdida de conexion wifi. (seg, grados cenigrados)
+const int default_sample_time=20;                    //Definicion de constantes por defecto en caso de
+const int default_on_valve_time=0;                   //perdida de conexion wifi. (seg, grados cenigrados)
 
 
-int valvula = 12;                                   //pin de control de la válvula
+int valvula = 12;                                    //pin de control de la válvula
 
 
 int Hour=0;
 int Minute=0;
-int Humedad=0;                                      //inicialización de variables
+int Humedad=0;                                       //inicialización de variables
 int Lectura_Analogica=0;
 int reconection_time=0;
 float Sample=0;
@@ -55,22 +56,22 @@ int timezone = -5;
 int dst = 0;
 
 
-LiquidCrystal_I2C lcd(GPIO_ADDR, 20, 4);            //Se inicializa el lcd
-Ubidots client(TOKEN);                              //Se inicializa el cliente de Ubidots
-OneWire oneWire(ONE_WIRE_BUS);                      //Se inicializa el sensor de temperatura
+LiquidCrystal_I2C lcd(GPIO_ADDR, 20, 4);             //Se inicializa el lcd
+Ubidots client(TOKEN);                               //Se inicializa el cliente de Ubidots
+OneWire oneWire(ONE_WIRE_BUS);                       //Se inicializa el sensor de temperatura
 DallasTemperature sensors(&oneWire);
 
 void setup() {
-  Serial.begin(115200);                             //inicializa el puerto serial
+  Serial.begin(115200);                              //inicializa el puerto serial
   Serial.setDebugOutput(true);
   delay(10);
-  client.wifiConnection(WIFISSID, PASSWORD);        //se conecta a la red wifi
-  lcd.begin();                                      //se inicializan sensores, y lcd
+  client.wifiConnection(WIFISSID, PASSWORD);         //se conecta a la red wifi
+  lcd.begin();                                       //se inicializan sensores, y lcd
   lcd.backlight();
   sensors.begin();
 
 
-  configTime(timezone * 3600, dst, "pool.ntp.org", "time.nist.gov");   //sincroniza la hora interna con el servidor
+  configTime(timezone * 3600, dst, "pool.ntp.org", "time.nist.gov");   //sincroniza la hora interna con el servidor ntp
 
     Serial.println("\nWaiting for time");
 
@@ -79,9 +80,9 @@ void setup() {
       delay(1000);
     }
 
-  pinMode(valvula, OUTPUT);                         //se definen pines de entrada y salida
+  pinMode(valvula, OUTPUT);                          //se definen pines de entrada y salida
 
-  lcd.setCursor(0,0);                               //imprime el texto estatico del lcd
+  lcd.setCursor(0,0);                                //imprime el texto estatico del lcd
   lcd.print("Temperatura:");
   lcd.setCursor(0,1);
   lcd.print("Humedad:");
@@ -89,7 +90,7 @@ void setup() {
 
  void loop() {
 
-    Lectura_Analogica = analogRead(A0);               //Obtiene la humedad
+    Lectura_Analogica = analogRead(A0);              //Obtiene la humedad
    Humedad = map(Lectura_Analogica,0, 1024, 0, 100);
    Humedad=abs(100-Humedad);
 
@@ -137,7 +138,7 @@ void setup() {
      lcd.setCursor(15,1);
      lcd.print("D");
      Sample=default_sample_time*1000;                //Establece los valores POR DEFECTO para tiempo de encendido,
-     On_Time=default_on_valve_time*1000;             //Temperatura máxima, y periodo de muestreo.
+     On_Time=default_on_valve_time*1000;             //periodo de muestreo y hora de encendido
      Hour = default_hora;
      Minute = default_minuto;
      Serial.println("Se establecieron los valores por defecto");
@@ -159,14 +160,14 @@ void setup() {
      }
 
    if(lcd_state==1){
-     lcd.backlight();                               // enciende o apaga la luz del lcd
+     lcd.backlight();                                //Enciende o apaga la luz del lcd
    }
    else if(lcd_state==0){
      lcd.noBacklight();
    }
 
 
-   if((minute(now)>=Minute)&&(minute(now)<(Minute+(On_Time/60000)))&&(valve_state==0)){      // verifica si la válvula está apagada, y es hora de encenderla
+   if((minute(now)>=Minute)&&(minute(now)<(Minute+(On_Time/60000)))){      // verifica es hora de encender la válvula
 
        if(hour(now)==Hour){
          digitalWrite(valvula, HIGH);
@@ -190,8 +191,8 @@ void setup() {
 
 
 
-   // if(counter>=(On_Time/Sample)){                     //Controla la electrovalvula, si ya ha pasado el tiempo de
-   //   counter=0;                                     // encendido o apagado.
+   // if(counter>=(On_Time/Sample)){                 //Controla la electrovalvula, si ya ha pasado el tiempo de
+   //   counter=0;                                   // encendido o apagado.
    //  if((temperatura>=temp_value) && (last_state==0)){
    //    digitalWrite(valvula, HIGH);
    //    valve_state=1;
@@ -209,22 +210,22 @@ void setup() {
 
 
    if (Wifistatus == "C"){
-     client.add("Humedad", Humedad);                 //Empaqueta los valores de temperatura y humedad
-     client.add("Temperatura", temperatura);
-     client.add("HoraInt", hour(now));
-     client.add("MinutoInt", minute(now));
-     client.add("valve_state", valve_state);       //Empaqueta el estado de la válvula  si su estado ha cambiado.
+     client.add("Humedad", Humedad);                 //Empaqueta los valores de temperatura, humedad, tiempo
+     client.add("Temperatura", temperatura);         //y estado de la válvula
+     client.add("Hora del dispositivo", hour(now));
+     client.add("Minutos del dispositivo", minute(now));
+     client.add("Estado de la valvula", valve_state);
      client.sendAll(true);                           //Envia el paquete
      Serial.println("");
    }
 
 
-   if(Sample>600000){                                   //Verifica  que el valor del periodo de muestreo este dentro de
+   if(Sample>600000){                                //Verifica  que el valor del periodo de muestreo este dentro de
      Sample=default_sample_time;                     //los limites establecidos
    }
 
 
-    Serial.print("Wifi State: ");                     //Imprime configuraciones, y lecturas por el puerto serial.
+    Serial.print("Wifi State: ");                    //Imprime configuraciones, y lecturas por el puerto serial.
    Serial.println(Wifistatus);
    Serial.print("El periodo de muestreo es:  ");
    Serial.print(round(Sample/1000));
