@@ -27,9 +27,10 @@ char* MinuteOn = "xxxxxx";
 
 
 
+
 #define ONE_WIRE_BUS D3                              //Pin del bus One Wire
 #define GPIO_ADDR   0x27                             //direccion i2c del lcd
-#define iteracciones 4
+#define iteracciones 10
 #define dst  0
 #define timezone -5
 
@@ -126,54 +127,77 @@ void setup() {
    lcd.print('%');
 
 
-   int value;
+   if(WiFi.status() == 3){
 
-   while(it < iteracciones){
-       value =  client.getValue(Time_on_valve);      //Intenta descargar los valores de la nube; de no ser capaz, deja los valores anteriores como estaban
-      if (value != ERROR_VALUE){
-         lcd.setCursor(15,1);
-         lcd.print("C");
-         Wifistatus="C";
-         On_Time=value;
-         On_Time=On_Time*1000;
-         it=0;
-         break;
-      }else{
-         lcd.setCursor(15,1);
-         lcd.print("D");
-         Wifistatus="D";
+      //Intenta descargar los valores de la nube; de no ser capaz, deja los valores anteriores como estaban
+
+      int value;
+      it=0;
+      while(it <= iteracciones){
+          value =  client.getValue(Time_on_valve);
+         if (value != ERROR_VALUE){
+            lcd.setCursor(15,1);
+            lcd.print("C");
+            Wifistatus="C";
+            On_Time=value;
+            On_Time=On_Time*1000;
+            break;
+         }else if(it==iteracciones || WiFi.status() != 3 ){
+            lcd.setCursor(15,1);
+            lcd.print("D");
+            Wifistatus="D";
+            goto var2;
+         }
+      it++;
       }
+
+   var2:
+
+      it=0;
+      while(it <= iteracciones){
+         value =  client.getValue(lcdb);
+          if (value != ERROR_VALUE){
+            lcd_state=value;
+            break;
+         }else if(WiFi.status() != 3 ){
+            goto var3;
+         }
+         it++;
+       }
+
+       var3:
+
+       it=0;
+       while(it <= iteracciones){
+          value =  client.getValue(HourOn);
+          if (value != ERROR_VALUE){
+            Hour=value;
+            break;
+         }else if(WiFi.status() != 3 ){
+            goto var4;
+         }
+         it++;
+       }
+
+       var4:
+
+       it=0;
+       while(it <= iteracciones){
+          value =  client.getValue(MinuteOn);
+         if (value != ERROR_VALUE){
+            Minute=value;
+            break;
+         }else if(WiFi.status() != 3 ){
+            goto main;
+         }
+         it++;
+      }
+
    }
 
+main:
 
-   while(it < iteracciones){
-      value =  client.getValue(lcdb);
-       if (value != ERROR_VALUE){
-         lcd_state=value;
-         it=0;
-         break;
-       }
-    }
-
-    while(it < iteracciones){
-       value =  client.getValue(HourOn);
-       if (value != ERROR_VALUE){
-         Hour=value;
-         it=0;
-         break;
-       }
-    }
-
-    while(it < iteracciones){
-       value =  client.getValue(MinuteOn);
-       if (value != ERROR_VALUE){
-         Minute=value;
-         it=0;
-         break;
-       }
-   }
-
-
+   //Controla la válvula, y el lcd
 
    // On_Time = client.getValue(Time_on_valve);            //Prueba la conectividad con el servidor de Ubidots
    //
@@ -193,6 +217,7 @@ void setup() {
    //   lcd.setCursor(15,1);
    //   lcd.print("D");
    //  }
+
 
 
    if(lcd_state==1){
@@ -270,8 +295,7 @@ void setup() {
    // Serial.println("______________________________________________________________________________________________");
 
 
-
-     delay(10000);                                  //Espera un tiempo antes el iniciar siguiente ciclo
+     delay(20000);                                  //Espera un tiempo antes el iniciar siguiente ciclo
 
 
  }
